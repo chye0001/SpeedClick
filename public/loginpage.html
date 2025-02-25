@@ -1,0 +1,91 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReactionTime - login</title>
+</head>
+<body>
+    
+    <form>
+        <p id="error" style="color: red;"></p>
+
+        <label>Username</label>
+        <input id="username" type="text" placeholder="usaername">
+
+        <label>Password</label>
+        <input id="password" type="password" placeholder="password">
+
+        <button id="loginBtn" type="submit">Login</button>
+        <button id="home">Home</button>
+    </form>
+</body>
+
+<script>
+
+    const LOGIN_ENDPOINT = "/login";
+    const GAME_PAGE = "/play";
+    const HOME = "/";
+
+    async function login(event) {
+        event.preventDefault()
+        const usernameInputField = document.getElementById("username");
+        const passwordInputField = document.getElementById("password");
+
+        const errorMessage = document.getElementById("error");
+
+        try{
+
+            if (usernameInputField.value === null || passwordInputField.value === null) {
+                errorMessage.textContent = "Please enter username / password.";
+                
+            } else {
+                errorMessage.textContent = "";
+            }
+
+            const requestBody = {
+                username: usernameInputField.value,
+                password: passwordInputField.value
+            }
+
+            const response = await fetch(LOGIN_ENDPOINT, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                if (response.status === 400) {
+                    errorMessage.textContent = "Wrong credentials";
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return; 
+            }
+            
+            errorMessage.textContent = "";
+            const result = await response.json();
+            const data = JSON.stringify(result.data);               
+            console.log("login data", data)
+            localStorage.setItem("user", data);
+
+            window.location.href = GAME_PAGE;
+
+        }catch (error) {
+            console.error(error);
+        }
+    }
+
+    const loginBtn = document.getElementById("loginBtn");
+    loginBtn.addEventListener("click", (event) => login(event));
+
+    const homeBtn = document.getElementById("home");
+    homeBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.location.href = HOME
+        });
+</script>
+
+</html>

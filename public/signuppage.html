@@ -6,8 +6,13 @@
 </head>
 <body>
     
+    <p id="error" style="color: red;"></p>
+
     <label>Username:</label>
     <input id="usernameInput" type="text" placeholder="username">
+
+    <label>Password (currently not hashed):</label>
+    <input id="password" type="password" placeholder="password">
 
     <button id="signUp">Sign Up</button>
     <button id="back">Back</button>
@@ -15,24 +20,56 @@
 
     <script>
         const FRONTPAGE = "/";
+        const SIGN_UP_ENDPOINT = "/signUp";
         const GAME_PAGE = "/play"
 
+        const errorMessage = document.getElementById("error")
+
         async function signUp() {
-            const username = document.getElementById("usernameInput").value;
+            const usernameInputField = document.getElementById("usernameInput");
+            const passwordInputField = document.getElementById("password");
 
             const requestBody = {
-                username: username
+                username: usernameInputField.value,
+                password: passwordInputField.value
             }
 
-            await fetch("/signup", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(requestBody)
-            });
+            try{
+                const response = await fetch(SIGN_UP_ENDPOINT, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(requestBody)
+                });
 
-            window.location.href = GAME_PAGE;
+                if (!response.ok) {
+                    if (response.status === 400) {
+                        errorMessage.textContent = "Please fill out username and password.";
+                    } else if (response.status === 401) {
+                        errorMessage.textContent = "Username taken.";
+                    } else {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    return; 
+                }
+
+                errorMessage.textContent = "";
+                const result = await response.json();
+                const data = JSON.stringify(result.data);
+                console.log("data insdie signup", data)
+                localStorage.setItem("user", data);
+
+                usernameInputField.value = "";
+                passwordInputField.value = "";
+
+                window.location.href = GAME_PAGE;
+
+
+            }catch (error) {
+                console.error(error);
+            }
         }
 
         const signUpBtn = document.getElementById("signUp");

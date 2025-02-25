@@ -30,9 +30,11 @@
     </style>
     
     <title>ReactionTime</title>
-    </head>
+</head>
 
-    
+<body>
+    <h3 id="user"></h3>
+
     <div>
         <h2 id="bestTime" class="inline-heading">Highscore: </h2>
         <h2 id="previousTime" class="inline-heading">Previous time: </h2>
@@ -43,8 +45,40 @@
         <p id="boxSubMessage">When the box turns green click as fast as humanly possible!</p>
         <div id="timer"></div>
     </div>
+
+    <button id="home">Home</button>
     
 </body>
+
+<script>
+    const user = document.getElementById("user");
+    const highscore = document.getElementById("bestTime");
+    const previousTime = document.getElementById("previousTime");
+
+    const data = localStorage.getItem("user");
+    const userData = JSON.parse(data);
+    
+    if(!userData) {
+        user.textContent = "Hello Guest!";
+    
+    } else {
+        const userReactionTimeHistory = userData.reactionTimeHistory;
+
+        const sortedReactionTimeHistory = userReactionTimeHistory.sort((a, b) => a.reactionTime - b.reactionTime);
+        const fastestTime = sortedReactionTimeHistory[0];
+        const lastIndex = userReactionTimeHistory.length;
+
+        user.textContent = "Hello " + userData.username;
+        highscore.textContent = "Highscore: " + fastestTime + "ms"
+        previousTime.textContent = "Previous time: " + userReactionTimeHistory[lastIndex].reactionTime + "ms";
+    }
+
+</script>
+
+<script>
+    const homeBtn = document.getElementById("home");
+    homeBtn.addEventListener("click", () => window.location.href = "/");
+</script>
 
 <script>
     const bestTimeElement = document.getElementById("bestTime");
@@ -55,20 +89,33 @@
     
     const box = document.getElementById("box");
 
-    function updateGuestReactionTimeScore() {
-        if (!currentReactionTime) {
-            bestTimeElement.textContent = "Highscore: --- ms";
-            previousTimeElement.textContent = "Previous Score: --- ms";
-            return;
-        }
+    function updateReactionTimeScore() {
 
-        if (!bestReactionTimeHighScore || currentReactionTime < bestReactionTimeHighScore) {
-            bestReactionTimeHighScore = currentReactionTime;
-            bestTimeElement.textContent = "Highscore: " + currentReactionTime + " ms";
-        }
+        const data = localStorage.getItem("user");
+        const userData = JSON.parse(data);
+    
+        if(!userData) {
+            
+            if (!currentReactionTime) {
+                bestTimeElement.textContent = "Highscore: --- ms";
+                previousTimeElement.textContent = "Previous Score: --- ms";
+                return;
+            }
+    
+            if (!bestReactionTimeHighScore || currentReactionTime < bestReactionTimeHighScore) {
+                bestReactionTimeHighScore = currentReactionTime;
+                bestTimeElement.textContent = "Highscore: " + currentReactionTime + " ms";
+            }
+    
+            previousTimeElement.textContent = "Previous score: " + currentReactionTime + " ms";
+        
+        } else {
 
-        previousTimeElement.textContent = "Previous score: " + currentReactionTime + " ms";
+            //logic for posting reaction time on user and updating it
+
+        }
     }
+
 
 
    
@@ -131,7 +178,8 @@
         if(animationFrameId){
             cancelAnimationFrame(animationFrameId);
         }
-        updateGuestReactionTimeScore();
+
+        updateReactionTimeScore();
     }
 
 
@@ -152,8 +200,7 @@
     const playBtn = document.getElementById("box");
     playBtn.addEventListener("click", startGame);
 
-    updateGuestReactionTimeScore();
+    updateReactionTimeScore();
 </script>
 
-</body>
 </html>

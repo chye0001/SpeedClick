@@ -22,28 +22,65 @@
 </head>
 <body>
     <h1>THE Reaction time game!</h1>
-    <div style="margin-bottom: 100px;">
-        <button id="guestBtn" class="inline">Play as guest</button>
-        <button id="accountBtn" class="inline">Create an account (dont work at the moment)</button>
+    <div id="btnContainer" style="margin-bottom: 100px;">
     </div>
 
+
     <script>
+        const btnContainer = document.getElementById("btnContainer");
 
-        function playAsGuest() {
-            window.location.href = "/playAsGuest";
+        const GAME_PAGE = "/play";
+        const LOGIN_PAGE = "/login"
+        const SIGN_UP_PAGE = "/signup";
+        const HOME = "/"
+        
+        function login() {
+            window.location.href = LOGIN_PAGE;
         }
-        const guestBtn = document.getElementById("guestBtn");
-        guestBtn.addEventListener("click", playAsGuest)
 
-
+        function logout() {
+            localStorage.removeItem("user");
+            window.location.href = HOME
+        }
 
         async function createProfile() {
-            window.location.href = "/createProfile";
+            window.location.href = SIGN_UP_PAGE;
         } 
-        const accountBtn = document.getElementById("accountBtn");
-        accountBtn.addEventListener("click", createProfile)
+
+        function play() {
+            window.location.href = GAME_PAGE;
+        }
 
 
+        const user = localStorage.getItem("user");
+        if(user) {
+            btnContainer.innerHTML = `
+                <button id="playBtn">Play</button>
+                <button id="logoutBtn">Logout</buttn>
+            `
+            const playBtn = document.getElementById("playBtn");
+            playBtn.addEventListener("click", play);
+
+            const logoutBtn = document.getElementById("logoutBtn");
+            logoutBtn.addEventListener("click", logout);
+
+            
+        } else {
+            btnContainer.innerHTML = `
+                <button id="guestBtn" class="inline">Play as guest</button>
+                <button id="loginBtn" class="inline">Login</button>
+                <button id="accountBtn" class="inline">Create an account</button>
+            `
+            
+            const guestBtn = document.getElementById("guestBtn");
+            guestBtn.addEventListener("click", play);
+
+            const loginBtn = document.getElementById("loginBtn");
+            loginBtn.addEventListener("click", login);
+
+            const accountBtn = document.getElementById("accountBtn");
+            accountBtn.addEventListener("click", createProfile);
+        }
     </script>
 
 </body>
