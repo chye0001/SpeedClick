@@ -1,0 +1,46 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReactionTime - Sign up</title>
+</head>
+<body>
+    
+    <label>Username:</label>
+    <input id="usernameInput" type="text" placeholder="username">
+
+    <button id="signUp">Sign Up</button>
+    <button id="back">Back</button>
+
+
+    <script>
+        const FRONTPAGE = "/";
+        const GAME_PAGE = "/play"
+
+        async function signUp() {
+            const username = document.getElementById("usernameInput").value;
+
+            const requestBody = {
+                username: username
+            }
+
+            await fetch("/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            window.location.href = GAME_PAGE;
+        }
+
+        const signUpBtn = document.getElementById("signUp");
+        signUpBtn.addEventListener("click", signUp)
+
+        const backBtn = document.getElementById("back");
+        backBtn.addEventListener("click", () => window.location.href = FRONTPAGE)
+    </script>
+
+</body>
+</html>

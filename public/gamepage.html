@@ -1,0 +1,164 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            height: 100vh; /* Make sure the body takes full height of the viewport */
+            flex-direction: column; /* Stack content vertically */
+        }
+    
+        #box {
+            background-color: blueviolet;
+            padding: 20px;
+            width: 100%;
+            height: 60px;
+            text-align: center; /* Center text inside the box */
+        }
+    
+        .inline-heading {
+            display: inline-block;
+            margin-right: 20px;
+        }
+    
+        h3, p {
+            margin: 10px;
+        }
+    </style>
+    
+    <title>ReactionTime</title>
+    </head>
+
+    
+    <div>
+        <h2 id="bestTime" class="inline-heading">Highscore: </h2>
+        <h2 id="previousTime" class="inline-heading">Previous time: </h2>
+    </div>
+    
+    <div id="box">
+        <h3 id="boxMessage">Click the box to get started</h3>
+        <p id="boxSubMessage">When the box turns green click as fast as humanly possible!</p>
+        <div id="timer"></div>
+    </div>
+    
+</body>
+
+<script>
+    const bestTimeElement = document.getElementById("bestTime");
+    const previousTimeElement = document.getElementById("previousTime");
+
+    let bestReactionTimeHighScore;
+    let currentReactionTime;
+    
+    const box = document.getElementById("box");
+
+    function updateGuestReactionTimeScore() {
+        if (!currentReactionTime) {
+            bestTimeElement.textContent = "Highscore: --- ms";
+            previousTimeElement.textContent = "Previous Score: --- ms";
+            return;
+        }
+
+        if (!bestReactionTimeHighScore || currentReactionTime < bestReactionTimeHighScore) {
+            bestReactionTimeHighScore = currentReactionTime;
+            bestTimeElement.textContent = "Highscore: " + currentReactionTime + " ms";
+        }
+
+        previousTimeElement.textContent = "Previous score: " + currentReactionTime + " ms";
+    }
+
+
+   
+    let timeout;    
+    function startGame() {
+        const boxMessage = document.getElementById("boxMessage");
+        const boxSubMessage = document.getElementById("boxSubMessage");
+
+        if(box.style.backgroundColor === "red") {
+            boxMessage.textContent = "Too soon";
+            box.style.backgroundColor = "blueviolet"
+            boxSubMessage.textContent = "click again to retry"
+
+            clearTimeout(timeout)
+            return;
+        }
+
+        box.style.backgroundColor = "red";
+        boxMessage.textContent = "Wait for green..."
+        boxSubMessage.textContent = ""
+
+
+        const randomTimer = Math.random() * 10000 / 2 + 1;
+        timeout = setTimeout(setGreenBackground, randomTimer)
+    }
+
+
+
+    let startTime;
+    let animationFrameId;
+
+    function setGreenBackground() {
+        playBtn.removeEventListener("click", startGame);
+        
+        measureReactionTimeCallback = () => {
+            calculateGuestReactionTime();
+            resetGame();
+            playBtn.removeEventListener("click", measureReactionTimeCallback);
+        }
+        
+        playBtn.addEventListener("click", measureReactionTimeCallback);
+        box.style.backgroundColor = "green"
+        document.getElementById("boxMessage").textContent = "";
+        
+        startTime = Date.now();
+        currentReactionTime = 0;
+
+        function updateTimer() {
+            const currentTime = Date.now();
+            currentReactionTime = currentTime - startTime;
+            timer.textContent = currentReactionTime + " ms";
+            animationFrameId = requestAnimationFrame(updateTimer);
+        }
+
+        animationFrameId = requestAnimationFrame(updateTimer);
+    }
+
+    function calculateGuestReactionTime() {
+        if(animationFrameId){
+            cancelAnimationFrame(animationFrameId);
+        }
+        updateGuestReactionTimeScore();
+    }
+
+
+
+    function resetGame() {
+        box.style.background = "blueviolet"
+        box.innerHTML = 
+        `
+        <h3 id="boxMessage">Click the box to get started</h3>
+        <p id="boxSubMessage">When the box turns green click as fast as humanly possible!</p>
+        <div id="timer"></div>
+        `
+        playBtn.addEventListener("click", startGame)
+    }
+
+
+
+    function getCurrentTime() {
+        return Date.now();
+    }
+
+
+    
+    const playBtn = document.getElementById("box");
+    playBtn.addEventListener("click", startGame);
+
+    updateGuestReactionTimeScore();
+</script>
+
+</body>
+</html>

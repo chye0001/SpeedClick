@@ -1,0 +1,50 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column; 
+        }
+
+        .inline {
+            display: inline-block;
+            margin-right: 20px;
+        }
+    </style>
+
+    <title>ReactionTime</title>
+</head>
+<body>
+    <h1>THE Reaction time game!</h1>
+    <div style="margin-bottom: 100px;">
+        <button id="guestBtn" class="inline">Play as guest</button>
+        <button id="accountBtn" class="inline">Create an account (dont work at the moment)</button>
+    </div>
+
+    <script>
+
+        function playAsGuest() {
+            window.location.href = "/playAsGuest";
+        }
+        const guestBtn = document.getElementById("guestBtn");
+        guestBtn.addEventListener("click", playAsGuest)
+
+
+
+        async function createProfile() {
+            window.location.href = "/createProfile";
+        } 
+        const accountBtn = document.getElementById("accountBtn");
+        accountBtn.addEventListener("click", createProfile)
+
+
+    </script>
+
+</body>
+</html>
