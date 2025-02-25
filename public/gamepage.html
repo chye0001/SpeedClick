@@ -91,8 +91,8 @@
         boxSubMessage.textContent = ""
 
 
-        const randomTimer = Math.random() * 10000 / 2 + 1;
-        timeout = setTimeout(setGreenBackground, randomTimer)
+        const randomCountDown = Math.random() * 10000 / 2 + 1;
+        timeout = setTimeout(startTimer, randomCountDown)
     }
 
 
@@ -100,7 +100,7 @@
     let startTime;
     let animationFrameId;
 
-    function setGreenBackground() {
+    function startTimer() {
         playBtn.removeEventListener("click", startGame);
         
         measureReactionTimeCallback = () => {
@@ -110,6 +110,7 @@
         }
         
         playBtn.addEventListener("click", measureReactionTimeCallback);
+        
         box.style.backgroundColor = "green"
         document.getElementById("boxMessage").textContent = "";
         
@@ -144,12 +145,6 @@
         <div id="timer"></div>
         `
         playBtn.addEventListener("click", startGame)
-    }
-
-
-
-    function getCurrentTime() {
-        return Date.now();
     }
 
 
