@@ -58,7 +58,6 @@
                 errorMessage.textContent = "";
                 const result = await response.json();
                 const data = JSON.stringify(result.data);
-                console.log("data insdie signup", data)
                 localStorage.setItem("user", data);
 
                 usernameInputField.value = "";

@@ -51,26 +51,38 @@
 </body>
 
 <script>
-    const user = document.getElementById("user");
+    const userElement = document.getElementById("user");
     const highscore = document.getElementById("bestTime");
-    const previousTime = document.getElementById("previousTime");
+    const previousTimeTag = document.getElementById("previousTime");
 
     const data = localStorage.getItem("user");
-    const userData = JSON.parse(data);
+    const user = JSON.parse(data);
     
-    if(!userData) {
-        user.textContent = "Hello Guest!";
+    if(!user) {
+        userElement.textContent = "Hello Guest!";
     
     } else {
-        const userReactionTimeHistory = userData.reactionTimeHistory;
 
-        const sortedReactionTimeHistory = userReactionTimeHistory.sort((a, b) => a.reactionTime - b.reactionTime);
-        const fastestTime = sortedReactionTimeHistory[0];
-        const lastIndex = userReactionTimeHistory.length;
 
-        user.textContent = "Hello " + userData.username;
-        highscore.textContent = "Highscore: " + fastestTime + "ms"
-        previousTime.textContent = "Previous time: " + userReactionTimeHistory[lastIndex].reactionTime + "ms";
+        const userReactionTimeHistory = user.reactionTimeHistory;
+
+        if(!userReactionTimeHistory) {
+            userElement.textContent = "Hello " + user.username;
+            highscore.textContent = "Highscore: --- ms";
+            previousTimeTag.textContent = "Previous Score: --- ms";
+
+        } else {
+            const fastestTime = userReactionTimeHistory.reduce((fastestTime, currentTime) => {
+                return currentTime.reactionTime < fastestTime.reactionTime ? currentTime : fastestTime;
+            }, userReactionTimeHistory[0]);
+
+            const lastIndex = userReactionTimeHistory.length - 1;
+            const previousTime = userReactionTimeHistory[lastIndex].reactionTime;
+
+            userElement.textContent = "Hello " + user.username;
+            highscore.textContent = "Highscore: " + fastestTime.reactionTime + "ms"
+            previousTimeTag.textContent = "Previous time: " + previousTime + "ms";
+        }
     }
 
 </script>
@@ -95,7 +107,9 @@
         const userData = JSON.parse(data);
     
         if(!userData) {
-            
+
+            userElement.textContent = "Hello Guest!";
+
             if (!currentReactionTime) {
                 bestTimeElement.textContent = "Highscore: --- ms";
                 previousTimeElement.textContent = "Previous Score: --- ms";
@@ -109,11 +123,68 @@
     
             previousTimeElement.textContent = "Previous score: " + currentReactionTime + " ms";
         
+
         } else {
 
-            //logic for posting reaction time on user and updating it
+            updateScores();
 
         }
+    }
+
+
+
+
+    const UPDATE_HISTORY_ENDPOINT = "/updateHistory"
+    async function updateUserReactionTimeHistory() {
+        
+        const recordedReactionTime = {
+            reactionTime: currentReactionTime,
+            date: Date.now()
+        }
+
+        const username = JSON.parse(localStorage.getItem("user")).username;
+
+        const response = await fetch(UPDATE_HISTORY_ENDPOINT + "/" + username, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(recordedReactionTime)
+        });
+
+        const result = await response.json();
+        //TODO push the result to leaderboard if it matches
+    }
+
+
+
+
+    async function updateScores() {
+        const userElement = document.getElementById("user");
+        const highscore = document.getElementById("bestTime");
+        const previousTimeTag = document.getElementById("previousTime");
+
+        const username = JSON.parse(localStorage.getItem("user")).username;
+
+        const response = await fetch("/users" + "/" + username);
+        const result = await response.json();
+        const user = result.data;
+
+        const userReactionTimeHistory = user.reactionTimeHistory;
+
+        if(userReactionTimeHistory.length === 0) {return}
+
+            const fastestTime = userReactionTimeHistory.reduce((fastestTime, currentTime) => {
+                return currentTime.reactionTime < fastestTime.reactionTime ? currentTime : fastestTime;
+            }, userReactionTimeHistory[0]);
+
+            const lastIndex = userReactionTimeHistory.length - 1;
+            const previousTime = userReactionTimeHistory[lastIndex].reactionTime;
+
+            userElement.textContent = "Hello " + user.username;
+            highscore.textContent = "Highscore: " + fastestTime.reactionTime + "ms"
+            previousTimeTag.textContent = "Previous time: " + previousTime + "ms";
+
     }
 
 
@@ -179,6 +250,7 @@
             cancelAnimationFrame(animationFrameId);
         }
 
+        updateUserReactionTimeHistory();
         updateReactionTimeScore();
     }
 
