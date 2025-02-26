@@ -47,6 +47,10 @@
     </div>
 
     <button id="home">Home</button>
+
+    <div id="leaderboard">
+
+    </div>
     
 </body>
 
@@ -104,9 +108,9 @@
     function updateReactionTimeScore() {
 
         const data = localStorage.getItem("user");
-        const userData = JSON.parse(data);
+        const user = JSON.parse(data);
     
-        if(!userData) {
+        if(!user) {
 
             userElement.textContent = "Hello Guest!";
 
@@ -122,12 +126,9 @@
             }
     
             previousTimeElement.textContent = "Previous score: " + currentReactionTime + " ms";
-        
 
         } else {
-
             updateScores();
-
         }
     }
 
@@ -152,9 +153,105 @@
             body: JSON.stringify(recordedReactionTime)
         });
 
-        const result = await response.json();
-        //TODO push the result to leaderboard if it matches
+        await response.json();
+        
+        const isUpdated = checkLeaderboard(username, recordedReactionTime);
+
+        if(!isUpdated) {
+            return;
+        }
+
+        await renderLeaderboard();
     }
+
+
+
+    
+    async function checkLeaderboard(username, recordedReactionTime) {
+        const potentialLeaderboardEntry = {
+            username: username,
+            reactionTime: recordedReactionTime.reactionTime,
+            date: recordedReactionTime.date
+        }   
+
+        try{
+            const response = await fetch(LEADERBOARD_ENDPOINT);
+            
+            if(!response.ok) {
+                throw new Error("Network error statuscode: " + response.status);
+                return;
+            }
+
+            const result = await response.json();
+            const leaderboard = result.data;
+
+            let isUpdated;
+            if(leaderboard.length < 10) {
+              return await updateLeaderboard(potentialLeaderboardEntry);
+            }
+
+            const slowestTime = leaderboard.reduce((fastestTime, currentTime) => {
+                return currentTime.reactionTime > fastestTime.reactionTime ? currentTime : fastestTime;
+            }, leaderboard[0]);
+           
+            return potentialLeaderboardEntry.reactionTime < slowestTime.reactionTime ? updateLeaderboard(potentialLeaderboardEntry) : false;
+            
+        } catch(error) {
+            console.error(error);
+        } 
+    }
+
+
+
+    const LEADERBOARD_ENDPOINT = "/leaderboard"
+    async function updateLeaderboard(newLeaderboardEntry) {
+        await fetch(LEADERBOARD_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newLeaderboardEntry)
+        });
+
+        return true;
+    }
+
+
+    async function renderLeaderboard() {
+        const response = await fetch(LEADERBOARD_ENDPOINT);
+        const result = await response.json();
+        const leaderboard = result.data;
+
+        const leaderboardContainer = document.getElementById("leaderboard");
+
+        const leaderboardTable = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Player</th>
+                        <th>Reaction Time (ms)</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${leaderboard
+                        .map((entry, index) => `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${entry.username}</td>
+                                <td>${entry.reactionTime}</td>
+                                <td>${new Date(entry.date).toLocaleString()}</td>
+                            </tr>
+                        `)
+                        .join("")}
+                </tbody>
+            </table>
+        `;
+
+        leaderboardContainer.innerHTML = leaderboardTable;
+    }
+
 
 
 
@@ -222,7 +319,7 @@
         playBtn.removeEventListener("click", startGame);
         
         measureReactionTimeCallback = () => {
-            calculateGuestReactionTime();
+            calculateReactionTime();
             resetGame();
             playBtn.removeEventListener("click", measureReactionTimeCallback);
         }
@@ -245,13 +342,20 @@
         animationFrameId = requestAnimationFrame(updateTimer);
     }
 
-    function calculateGuestReactionTime() {
+    async function calculateReactionTime() {
         if(animationFrameId){
             cancelAnimationFrame(animationFrameId);
         }
 
-        updateUserReactionTimeHistory();
+        const user = JSON.parse(localStorage.getItem("user"));
+        if(!user) {
+            updateReactionTimeScore();
+            return;
+        }
+
         updateReactionTimeScore();
+        await updateUserReactionTimeHistory();
+        await renderLeaderboard();
     }
 
 
@@ -273,6 +377,7 @@
     playBtn.addEventListener("click", startGame);
 
     updateReactionTimeScore();
+    renderLeaderboard();
 </script>
 
 </html>

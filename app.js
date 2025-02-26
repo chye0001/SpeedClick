@@ -5,6 +5,8 @@ app.use(express.json());
 let users = [];
 let nextId = 0;
 
+let leaderboard = [];
+
 app.get("/", (req, res) => {
   console.log(users);
   res.sendFile(__dirname + "/public/frontpage.html");
@@ -23,16 +25,58 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/users/:username", (req, res) => {
-
   const username = req.params.username;
 
   const foundUserIndex = users.findIndex((user) => user.username === username);
   const foundUser = users[foundUserIndex];
   console.log(foundUser);
-  
-  res.send({data: foundUser})
 
-})
+  res.send({ data: foundUser });
+});
+
+app.get("/leaderboard", (req, res) => {
+  res.send({ data: leaderboard });
+});
+
+app.post("/leaderboard", (req, res) => {
+  const reqBody = req.body;
+
+  const newEntry = {
+    username: reqBody.username,
+    reactionTime: reqBody.reactionTime,
+    date: reqBody.date,
+  };
+
+  if (leaderboard.length === 10) {
+    
+    let insertPosition = -1;
+    for (let i = 9; i >= 0; i--) {
+      if (newEntry.reactionTime < leaderboard[i].reactionTime) {
+        insertPosition = i;
+      } else {
+        break;
+      }
+    }
+
+    if (insertPosition === -1) {
+      return;
+    }
+
+    for (let j = 9; j > insertPosition; j--) {
+      leaderboard[j] = leaderboard[j - 1];
+    }
+
+    leaderboard[insertPosition] = newEntry;
+    res.send({ data: newEntry });
+    return;
+  }
+
+  //only ever reach this point when leaderboard has undder 10 entries
+  leaderboard.push(newEntry);
+  leaderboard.sort((a, b) => a.reactionTime - b.reactionTime);
+
+  res.send({ data: newEntry });
+});
 
 app.post("/updateHistory/:username", (req, res) => {
   const username = req.params.username;
@@ -103,12 +147,11 @@ app.post("/login", (req, res) => {
   if (foundUserIndex === -1) {
     res.status(401).send({ error: "Invalid credentials" });
   } else {
-    
     const foundUser = {
       id: users[foundUserIndex].id,
       username: users[foundUserIndex].username,
-      reactionTimeHistory: users[foundUserIndex].reactionTimeHistory
-    }
+      reactionTimeHistory: users[foundUserIndex].reactionTimeHistory,
+    };
     res.send({ data: foundUser });
   }
 });

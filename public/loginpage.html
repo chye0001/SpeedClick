@@ -68,7 +68,7 @@
             errorMessage.textContent = "";
             const result = await response.json();
             const data = JSON.stringify(result.data);               
-            console.log("login data", data)
+            
             localStorage.setItem("user", data);
 
             window.location.href = GAME_PAGE;
